@@ -328,60 +328,57 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
     integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
     crossorigin="anonymous"></script>
-  <script>
-    // Bootstrap validation
-    (function () {
-      'use strict';
-      var forms = document.querySelectorAll('.needs-validation');
-      Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', async function (event) {
+  <!-- các phần head, body, navbar, form giữ nguyên như file cũ của bạn -->
+
+<!-- cuối file contact.page.html thêm đoạn JS đã chỉnh sửa: -->
+
+<script>
+  // Bootstrap validation
+  (function () {
+    'use strict';
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
+        } else {
+          event.preventDefault();
+          const name = document.getElementById('name').value;
+          const email = document.getElementById('email').value;
+          const message = document.getElementById('message').value;
 
-          if (!form.checkValidity()) {
-            form.classList.add('was-validated');
-            return;
-          }
+          fetch("http://localhost:3000/contact", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, email, message })
+          })
+          .then(res => res.json())
+          .then(data => {
+            const banner = document.getElementById('successBanner');
+            banner.classList.add('show');
+            setTimeout(() => {
+              banner.classList.remove('show');
+            }, 3000);
+            form.reset();
+            form.classList.remove('was-validated');
+          })
+          .catch(err => {
+            alert("Lỗi kết nối đến server: " + err);
+          });
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
 
-          const contact = {
-            name: form.name.value.trim(),
-            email: form.email.value.trim(),
-            message: form.message.value.trim(),
-          };
+  function loadPage(page) {
+    window.location.href = page;
+  }
+</script>
 
-          const formMsg = document.getElementById('formMsg');
-
-          try {
-            const res = await fetch('http://localhost:3000/api/contact', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(contact)
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-              formMsg.innerHTML = '<p class="form-message-success">' + (data.message) + '</p>';
-              form.reset();
-              form.classList.remove('was-validated');
-            } else {
-              formMsg.innerHTML = '<p class="form-message-error">' + (data.error || 'Không xác định') + '</p>';
-            }
-          } catch (err) {
-            formMsg.innerHTML = '<p class="form-message-error">Lỗi kết nối đến server</p>';
-            console.error(err);
-          }
-          form.classList.add('was-validated');
-        }, false);
-      });
-    })();
-
-    function loadPage(page) {
-      window.location.href = page;
-    }
-  </script>
 </body>
 
 </html>
